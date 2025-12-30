@@ -48,16 +48,20 @@ export function setColors(temperature) {
 }
 
 /**
- * Get the sauna status message based on temperature
+ * Get the sauna status message based on temperature and trend
  * @param {number} temperature - Temperature in Fahrenheit
+ * @param {boolean} isCooling - Whether temperature is trending downward
  * @returns {string} Status message
  */
-export function getSaunaStatus(temperature) {
-    if (temperature < TEMP_MIN) {
-        return 'Nope';
-    } else if (temperature < TEMP_MAX) {
-        return 'Getting There';
-    } else {
+export function getSaunaStatus(temperature, isCooling = false) {
+    if (temperature >= TEMP_MAX) {
+        // At temperature - always show "Yes!" regardless of small fluctuations
         return 'Yes!';
+    } else if (temperature >= TEMP_MIN) {
+        // Between 80-134°F - show "Cooling Down" if trending down, otherwise "Getting There"
+        return isCooling ? 'Cooling Down' : 'Getting There';
+    } else {
+        // Below 80°F - sauna is cold
+        return 'Nope';
     }
 }

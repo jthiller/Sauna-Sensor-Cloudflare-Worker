@@ -19,6 +19,23 @@ const dataElement = document.getElementById('data');
 const loadingIndicator = document.getElementById('loading-indicator');
 
 /**
+ * Calculate if temperature is trending downward
+ * Uses average of recent readings vs older readings to smooth out noise
+ * @param {number[]} tempData - Array of temperature values (Celsius)
+ * @returns {boolean} True if temperature is cooling down
+ */
+function isCoolingDown(tempData) {
+    if (tempData.length < 6) return false; // Need enough data points
+
+    // Compare average of last 3 readings to average of 3 readings before that
+    const recentAvg = (tempData[tempData.length - 1] + tempData[tempData.length - 2] + tempData[tempData.length - 3]) / 3;
+    const olderAvg = (tempData[tempData.length - 4] + tempData[tempData.length - 5] + tempData[tempData.length - 6]) / 3;
+
+    // Consider cooling if dropped by more than 0.5°C (roughly 1°F)
+    return recentAvg < olderAvg - 0.5;
+}
+
+/**
  * Process raw sensor data and update the display
  * @param {Array} data - Array of sensor readings
  * @param {number} hours - Hours of data to display
@@ -44,9 +61,12 @@ function processData(data, hours) {
     );
     mostRecentHumidity = Math.round(humidityData[humidityData.length - 1]);
 
+    // Determine if cooling down
+    const cooling = isCoolingDown(temperatureData);
+
     // Update display
     dataElement.textContent = `${mostRecentTemp}°F`;
-    statusElement.textContent = getSaunaStatus(mostRecentTemp);
+    statusElement.textContent = getSaunaStatus(mostRecentTemp, cooling);
     statusElement.style.visibility = 'visible';
 
     // Update colors based on temperature
