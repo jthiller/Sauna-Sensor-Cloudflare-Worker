@@ -6,9 +6,13 @@ const API_BASE = 'https://jolly-hall-8315.fbkfp5vygk.workers.dev';
  * @returns {Promise<Array>} Array of sensor readings
  */
 export async function fetchDataForDate(date) {
+    const deviceName = 'LHT65 Temperature Sensor';
     const response = await fetch(
-        `${API_BASE}/LHT65%20Temperature%20Sensor?date=${date}`
+        `${API_BASE}/${encodeURIComponent(deviceName)}?date=${date}`
     );
+    if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+    }
     return await response.json();
 }
 
