@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200..800&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="apple-touch-icon" href="/sauna_180.png" />
+        <title>Is The Sauna Hot?</title>
+        <link rel="stylesheet" href="/src/style.css" />
+        <!-- Inline critical loading styles for instant render -->
+        <style>
+            :root {
+                --text-color: #283f43;
+                --stroke-color: #a2c6cc;
+                --background-color: #eff9fa;
+                --subtext-color: rgba(0, 0, 0, 0.5);
+            }
+            html, body {
+                height: 100%;
+                margin: 0;
+                padding: 0;
+                font-family: "Plus Jakarta Sans", sans-serif;
+                background-color: var(--background-color);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+            #content { z-index: 1; text-align: center; }
+            #status { display: block; font-size: calc(1rem + 10vw); margin: 8px 0 16px 0; font-weight: 500; color: var(--text-color); visibility: hidden; }
+            #data-container { padding-bottom: 30vh; }
+            #data { font-size: calc(0.5rem + 5vw); font-weight: 300; color: var(--subtext-color); cursor: pointer; }
+            #loading-indicator {
+                width: calc(0.5rem + 4vw);
+                height: calc(0.5rem + 4vw);
+                padding-left: 1vw;
+                display: block;
+                position: absolute;
+                left: 50%;
+                transform: translateX(-50%);
+            }
+            #indicator {
+                stroke-dasharray: 150 282.743;
+                stroke-dashoffset: 0;
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin { 100% { stroke-dashoffset: -282.743; } }
+            #sparkline { position: absolute; bottom: 0; left: 0; right: 0; width: 100%; height: 100vh; z-index: 0; }
+        </style>
+    </head>
+    <body>
+        <div id="content">
+            <div id="status"></div>
+            <div id="data-container">
+                <div id="data">🌫️</div>
+                <svg id="loading-indicator" viewBox="0 0 100 100">
+                    <circle
+                        class="circle-background"
+                        cx="50"
+                        cy="50"
+                        r="34"
+                        fill="none"
+                        stroke="var(--subtext-color)"
+                        opacity="0.1"
+                        stroke-width="16"
+                    />
+                    <circle
+                        id="indicator"
+                        cx="50"
+                        cy="50"
+                        r="34"
+                        fill="none"
+                        stroke="var(--stroke-color)"
+                        stroke-width="16"
+                        stroke-dasharray="0 282.743"
+                    />
+                </svg>
+            </div>
+        </div>
+
+        <svg
+            id="sparkline"
+            viewbox="0 0 600 40"
+            preserveaspectratio="none"
+            width="100%"
+            height="100%"
+        ></svg>
+
+        <script type="module" src="/src/main.js"></script>
+    </body>
+</html>
