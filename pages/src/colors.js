@@ -26,16 +26,17 @@ const MAX_COLORS = {
     background: [249, 243, 238],
 };
 
-const MIN_TEMP = 80;
-const MAX_TEMP = 135;
+// Temperature range constants
+export const TEMP_MIN = 80;
+export const TEMP_MAX = 135;
 
 /**
  * Set CSS custom properties based on temperature
  * @param {number} temperature - Temperature in Fahrenheit
  */
 export function setColors(temperature) {
-    const clampedTemp = Math.max(MIN_TEMP, Math.min(MAX_TEMP, temperature));
-    const factor = (clampedTemp - MIN_TEMP) / (MAX_TEMP - MIN_TEMP);
+    const clampedTemp = Math.max(TEMP_MIN, Math.min(TEMP_MAX, temperature));
+    const factor = (clampedTemp - TEMP_MIN) / (TEMP_MAX - TEMP_MIN);
 
     const textColor = interpolateColor(MIN_COLORS.text, MAX_COLORS.text, factor);
     const strokeColor = interpolateColor(MIN_COLORS.stroke, MAX_COLORS.stroke, factor);
@@ -52,9 +53,9 @@ export function setColors(temperature) {
  * @returns {string} Status message
  */
 export function getSaunaStatus(temperature) {
-    if (temperature < 80) {
+    if (temperature < TEMP_MIN) {
         return 'Nope';
-    } else if (temperature < 135) {
+    } else if (temperature < TEMP_MAX) {
         return 'Getting There';
     } else {
         return 'Yes!';

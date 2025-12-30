@@ -1,3 +1,9 @@
+// Chart configuration constants
+const CHART_WIDTH = 600;
+const CHART_HEIGHT = 40;
+const SPARKLINE_MAX_VALUE = 100;
+const SPARKLINE_MIN_VALUE = 0;
+
 /**
  * Calculate tangent vectors for smooth curve interpolation
  * @param {number[][]} points - Array of [x, y] coordinate pairs
@@ -22,21 +28,21 @@ export function drawSparkline(data) {
     const svg = document.getElementById('sparkline');
     if (!svg || data.length === 0) return;
 
-    const width = 600;
-    const height = 40;
-    const maxValue = 100;
-    const minValue = 0;
+    const width = CHART_WIDTH;
+    const height = CHART_HEIGHT;
+    const maxValue = SPARKLINE_MAX_VALUE;
+    const minValue = SPARKLINE_MIN_VALUE;
     const padding = 0;
     const step = (width - 2 * padding) / (data.length - 1);
+    const valueRange = maxValue - minValue;
 
-    svg.innerHTML = '';
+    svg.replaceChildren();
 
     const points = data.map((value, index) => {
         const x = padding + index * step;
-        const y =
-            height -
-            padding -
-            ((value - minValue) * (height - 2 * padding)) / (maxValue - minValue);
+        // Handle division by zero case when maxValue equals minValue
+        const normalized = valueRange === 0 ? 0.5 : (value - minValue) / valueRange;
+        const y = height - padding - normalized * (height - 2 * padding);
         return [x, y];
     });
 
@@ -47,6 +53,9 @@ export function drawSparkline(data) {
     for (let i = 0; i < points.length - 1; i++) {
         const [p1, p2] = [points[i], points[i + 1]];
         const [t1, t2] = [tangents[i], tangents[i + 1]];
+        // Calculate bezier curve control points:
+        // cp1 is 1/3 of the tangent distance from p1 along the tangent direction
+        // cp2 is 1/3 of the tangent distance from p2 against the tangent direction
         const cp1 = [p1[0] + t1[0] / 3, p1[1] + t1[1] / 3];
         const cp2 = [p2[0] - t2[0] / 3, p2[1] - t2[1] / 3];
         lineD += ` C ${cp1[0]},${cp1[1]} ${cp2[0]},${cp2[1]} ${p2[0]},${p2[1]}`;

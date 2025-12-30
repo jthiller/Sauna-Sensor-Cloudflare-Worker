@@ -1,7 +1,10 @@
 import './style.css';
 import { fetchDataForDate, hasEnoughHoursOfData, extractRecentData } from './api.js';
-import { setColors, getSaunaStatus } from './colors.js';
+import { setColors, getSaunaStatus, TEMP_MIN, TEMP_MAX } from './colors.js';
 import { drawSparkline } from './sparkline.js';
+
+// Fetch interval constant (5 minutes in milliseconds)
+const FETCH_INTERVAL_MS = 5 * 60 * 1000;
 
 // Application state
 let isShowingTemperature = true;
@@ -47,7 +50,7 @@ function processData(data, hours) {
     statusElement.style.visibility = 'visible';
 
     // Update colors based on temperature
-    const colorTemp = Math.max(80, Math.min(135, mostRecentTemp));
+    const colorTemp = Math.max(TEMP_MIN, Math.min(TEMP_MAX, mostRecentTemp));
     setColors(colorTemp);
 
     // Draw sparkline
@@ -70,7 +73,7 @@ async function fetchData() {
             previousDate.setDate(previousDate.getDate() - 1);
             const previousDateString = previousDate.toISOString().slice(0, 10);
             const previousData = await fetchDataForDate(previousDateString);
-            data = [...previousData, ...data];
+            data = [...(previousData || []), ...(data || [])];
         }
 
         processData(data, 3);
@@ -81,6 +84,7 @@ async function fetchData() {
         dataElement.textContent = 'Error fetching data';
         dataElement.classList.add('error');
         loadingIndicator.style.display = 'none';
+        return;
     }
 }
 
@@ -106,7 +110,7 @@ function toggleData() {
  */
 function startFetching() {
     fetchData();
-    setInterval(fetchData, 300000); // Fetch every 5 minutes
+    setInterval(fetchData, FETCH_INTERVAL_MS); // Fetch every 5 minutes
 }
 
 // Event listeners
