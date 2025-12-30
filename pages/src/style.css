@@ -1,0 +1,103 @@
+:root {
+    --text-color: #283f43;
+    --stroke-color: #a2c6cc;
+    --background-color: #eff9fa;
+    --subtext-color: rgba(0, 0, 0, 0.5);
+    --error-color: #ff5f5f;
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    font-family: "Plus Jakarta Sans", sans-serif;
+    background-color: var(--background-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+body {
+    -webkit-touch-callout: none;
+    -webkit-text-size-adjust: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+#content {
+    z-index: 1;
+    text-align: center;
+}
+
+#status {
+    display: block;
+    font-size: calc(1rem + 10vw);
+    margin: 8px 0 16px 0;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+#status.isNotShowingTemp {
+    visibility: hidden;
+}
+
+#data-container {
+    padding-bottom: 30vh;
+}
+
+#data {
+    font-size: calc(0.5rem + 5vw);
+    font-weight: 300;
+    color: var(--subtext-color);
+    cursor: pointer;
+}
+
+#data.error {
+    white-space: pre-wrap;
+    border: 1px solid var(--error-color);
+    font-size: calc(0.5rem + 1vw);
+    padding: 0.85em 1em 1em;
+    border-radius: 0.5em;
+}
+
+.error {
+    color: var(--error-color);
+}
+
+#loading-indicator {
+    width: calc(0.5rem + 4vw);
+    height: calc(0.5rem + 4vw);
+    padding-left: 1vw;
+    display: none;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+#loading-indicator circle {
+    transition: stroke-dasharray 0.2s ease-in;
+}
+
+#indicator {
+    stroke-dasharray: 150 282.743;
+    stroke-dashoffset: 0;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    100% {
+        stroke-dashoffset: -282.743;
+    }
+}
+
+#sparkline {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: 100vh;
+    z-index: 0;
+}
