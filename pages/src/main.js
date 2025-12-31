@@ -74,11 +74,15 @@ function processData(data, hours, usePeak = false) {
     const statusText = getSaunaStatus(mostRecentTemp, cooling);
     statusElement.textContent = statusText;
 
-    // Hide original elements, show WebGL
-    statusElement.style.visibility = 'hidden';
-    dataElement.style.visibility = 'hidden';
-    statusElement.style.display = 'none'; // Or just hide completely
-    dataElement.style.display = 'none';
+    // Hide original elements visually but keep accessible
+    statusElement.classList.add('visually-hidden');
+    dataElement.classList.add('visually-hidden');
+
+    // Ensure visibility/display properties don't conflict
+    statusElement.style.visibility = '';
+    dataElement.style.visibility = '';
+    statusElement.style.display = '';
+    dataElement.style.display = '';
 
     // Update WebGL Renderer
     renderer.setText(statusText, `${mostRecentTemp}°F`);

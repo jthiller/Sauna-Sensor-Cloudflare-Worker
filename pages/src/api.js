@@ -61,7 +61,7 @@ export function extractRecentData(data, hours = 3, usePeak = false) {
         referenceTime = sortedData[sortedData.length - 1].timestamp;
     }
 
-    const hoursInMillis = (hours || 24) * 60 * 60 * 1000;
+    const hoursInMillis = hours * 60 * 60 * 1000;
 
     // We want the window to END at the reference time (peak or latest)
     // so we see the climb UP to the peak.

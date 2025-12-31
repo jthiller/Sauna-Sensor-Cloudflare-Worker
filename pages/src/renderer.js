@@ -31,6 +31,7 @@ export class WebGLRenderer {
         this.timeUniformLocation = null;
         this.textureLocation = null;
         this.startTime = Date.now();
+        this.textureNeedsUpdate = true; // Initial upload needed
 
         this.init();
 
@@ -65,8 +66,17 @@ export class WebGLRenderer {
         const vertexShader = this.createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
         const fragmentShader = this.createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
 
+        if (!vertexShader || !fragmentShader) {
+            console.error('Failed to create shaders');
+            return;
+        }
+
         // Create program
         this.program = this.createProgram(gl, vertexShader, fragmentShader);
+        if (!this.program) {
+            console.error('Failed to create WebGL program');
+            return;
+        }
 
         // Look up locations
         this.positionAttributeLocation = gl.getAttribLocation(this.program, "a_position");
@@ -127,14 +137,18 @@ export class WebGLRenderer {
             // Re-render text texture at new resolution
             // TextTexture will now be initialized with larger dimensions on retina screens
             this.textTexture.resize(displayWidth, displayHeight);
+            this.textureNeedsUpdate = true;
         }
     }
 
     setText(status, temp) {
         this.textTexture.update(status, temp);
+        this.textureNeedsUpdate = true;
     }
 
     animate() {
+        if (!this.gl) return;
+
         const gl = this.gl;
         const time = (Date.now() - this.startTime) * 0.001; // Seconds
 
@@ -154,10 +168,14 @@ export class WebGLRenderer {
         gl.bindBuffer(gl.ARRAY_BUFFER, this.texCoordBuffer);
         gl.vertexAttribPointer(this.texCoordAttributeLocation, 2, gl.FLOAT, false, 0, 0);
 
-        // Upload current text canvas to texture
-        gl.bindTexture(gl.TEXTURE_2D, this.texture);
-        // texImage2D can take a canvas directly
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.textTexture.getCanvas());
+        // Check if texture needs update
+        if (this.textureNeedsUpdate) {
+            // Upload current text canvas to texture
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
+            // texImage2D can take a canvas directly
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, this.textTexture.getCanvas());
+            this.textureNeedsUpdate = false;
+        }
 
         // Set uniforms
         gl.uniform1f(this.timeUniformLocation, time);
