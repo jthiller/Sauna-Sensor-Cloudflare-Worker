@@ -2,6 +2,10 @@ import './style.css';
 import { fetchDataForDate, hasEnoughHoursOfData, extractRecentData } from './api.js';
 import { setColors, getSaunaStatus, TEMP_MIN, TEMP_MAX } from './colors.js';
 import { drawSparkline } from './sparkline.js';
+import { WebGLRenderer } from './renderer.js';
+
+// Initialize WebGL renderer
+const renderer = new WebGLRenderer();
 
 // Fetch interval constant (5 minutes in milliseconds)
 const FETCH_INTERVAL_MS = 5 * 60 * 1000;
@@ -39,11 +43,12 @@ function isCoolingDown(tempData) {
  * Process raw sensor data and update the display
  * @param {Array} data - Array of sensor readings
  * @param {number} hours - Hours of data to display
+ * @param {boolean} usePeak - Whether to focus on peak temperature
  */
-function processData(data, hours) {
+function processData(data, hours, usePeak = false) {
     if (data.length === 0) return;
 
-    const recentData = extractRecentData(data, hours);
+    const recentData = extractRecentData(data, hours, usePeak);
 
     temperatureData = recentData
         .filter((entry) => entry.data?.TempC_SHT !== undefined)
@@ -64,10 +69,23 @@ function processData(data, hours) {
     // Determine if cooling down
     const cooling = isCoolingDown(temperatureData);
 
-    // Update display
+    // Update display variables (keep text elements updated but hidden)
     dataElement.textContent = `${mostRecentTemp}°F`;
-    statusElement.textContent = getSaunaStatus(mostRecentTemp, cooling);
-    statusElement.style.visibility = 'visible';
+    const statusText = getSaunaStatus(mostRecentTemp, cooling);
+    statusElement.textContent = statusText;
+
+    // Hide original elements visually but keep accessible
+    statusElement.classList.add('visually-hidden');
+    dataElement.classList.add('visually-hidden');
+
+    // Ensure visibility/display properties don't conflict
+    statusElement.style.visibility = '';
+    dataElement.style.visibility = '';
+    statusElement.style.display = '';
+    dataElement.style.display = '';
+
+    // Update WebGL Renderer
+    renderer.setText(statusText, `${mostRecentTemp}°F`);
 
     // Update colors based on temperature
     const colorTemp = Math.max(TEMP_MIN, Math.min(TEMP_MAX, mostRecentTemp));
@@ -80,29 +98,46 @@ function processData(data, hours) {
 /**
  * Fetch sensor data from the API
  */
+/**
+ * Fetch sensor data from the API
+ */
 async function fetchData() {
     loadingIndicator.style.display = 'block';
 
-    try {
-        const currentDate = new Date().toISOString().slice(0, 10);
-        let data = await fetchDataForDate(currentDate);
+    // Check for ?date=YYYY-MM-DD query param
+    const urlParams = new URLSearchParams(window.location.search);
+    const dateParam = urlParams.get('date');
+    let data = [];
 
-        // If less than 3 hours of data, fetch previous day too
-        if (!data || !hasEnoughHoursOfData(data, 3)) {
-            const previousDate = new Date();
-            previousDate.setDate(previousDate.getDate() - 1);
-            const previousDateString = previousDate.toISOString().slice(0, 10);
-            const previousData = await fetchDataForDate(previousDateString);
-            data = [...(previousData || []), ...(data || [])];
+    try {
+        if (dateParam) {
+            console.log(`Fetching specific date: ${dateParam}`);
+            data = await fetchDataForDate(dateParam);
+        } else {
+            const currentDate = new Date().toISOString().slice(0, 10);
+            data = await fetchDataForDate(currentDate);
+
+            // If less than 3 hours of data, fetch previous day too
+            if (!data || !hasEnoughHoursOfData(data, 3)) {
+                const previousDate = new Date();
+                previousDate.setDate(previousDate.getDate() - 1);
+                const previousDateString = previousDate.toISOString().slice(0, 10);
+                const previousData = await fetchDataForDate(previousDateString);
+                data = [...(previousData || []), ...(data || [])];
+            }
         }
 
-        processData(data, 3);
+        const usePeak = !!dateParam;
+        processData(data, 3, usePeak);
+
         loadingIndicator.style.display = 'none';
         dataElement.classList.remove('error');
     } catch (error) {
         console.error('Error fetching data:', error);
-        dataElement.textContent = 'Error fetching data';
-        dataElement.classList.add('error');
+
+        // Error handling in WebGL
+        renderer.setText("Error", "No Data");
+
         loadingIndicator.style.display = 'none';
         return;
     }
@@ -116,11 +151,18 @@ function toggleData() {
 
     if (isShowingTemperature) {
         statusElement.classList.remove('isNotShowingTemp');
-        dataElement.textContent = `${mostRecentTemp}°F`;
+        // Update WebGL
+        const cooling = isCoolingDown(temperatureData);
+        renderer.setText(getSaunaStatus(mostRecentTemp, cooling), `${mostRecentTemp}°F`);
+
         drawSparkline(temperatureData);
     } else {
         statusElement.classList.add('isNotShowingTemp');
-        dataElement.textContent = `${mostRecentHumidity}%`;
+        // Update WebGL for Humidity
+        // Keep the sauna status ("Yes!", "Nope", etc) even when showing humidity
+        const cooling = isCoolingDown(temperatureData);
+        renderer.setText(getSaunaStatus(mostRecentTemp, cooling), `${mostRecentHumidity}%`);
+
         drawSparkline(humidityData);
     }
 }
@@ -140,7 +182,8 @@ document.addEventListener('visibilitychange', () => {
     }
 });
 
-dataElement.addEventListener('click', toggleData);
+// Attach click listener to the entire body to ensure easy toggling
+document.body.addEventListener('click', toggleData);
 
 // Start the app
 startFetching();
