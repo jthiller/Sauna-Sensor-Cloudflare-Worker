@@ -53,8 +53,10 @@ export class TextTexture {
         ctx.fillStyle = '#283f43';
 
         // Position similar to original DOM layout
-        // Status was margin: 8px 0 16px 0, roughly vertically centered but slightly up
-        const centerY = height / 2;
+        // Position similar to original DOM layout
+        // Original layout had padding-bottom: 30vh on #data-container
+        // Effectively shifting the visual center up by ~15% of the viewport height
+        const centerY = height * 0.35; // 50% - 15% = 35%
         const statusY = centerY - (statusSize * 0.6);
         ctx.fillText(this.status, width / 2, statusY);
 
