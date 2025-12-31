@@ -50,9 +50,10 @@ export class TextTexture {
 
         // Draw Status ("Yes!", "Nope", etc.)
         ctx.font = `500 ${statusSize}px "Plus Jakarta Sans", sans-serif`;
-        ctx.fillStyle = '#283f43';
+        // Use the CSS variable set by colors.js
+        const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
+        ctx.fillStyle = textColor || '#283f43';
 
-        // Position similar to original DOM layout
         // Position similar to original DOM layout
         // Original layout had padding-bottom: 30vh on #data-container
         // Effectively shifting the visual center up by ~15% of the viewport height

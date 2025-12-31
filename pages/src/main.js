@@ -84,12 +84,12 @@ function processData(data, hours, usePeak = false) {
     statusElement.style.display = '';
     dataElement.style.display = '';
 
-    // Update WebGL Renderer
-    renderer.setText(statusText, `${mostRecentTemp}°F`);
-
-    // Update colors based on temperature
+    // Update colors based on temperature FIRST so renderer picks up new CSS vars
     const colorTemp = Math.max(TEMP_MIN, Math.min(TEMP_MAX, mostRecentTemp));
     setColors(colorTemp);
+
+    // Update WebGL Renderer
+    renderer.setText(statusText, `${mostRecentTemp}°F`);
 
     // Draw sparkline
     drawSparkline(temperatureData);
