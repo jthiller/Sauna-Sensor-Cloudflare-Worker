@@ -74,9 +74,9 @@ function processData(data, hours, usePeak = false) {
     const statusText = getSaunaStatus(mostRecentTemp, cooling);
     statusElement.textContent = statusText;
 
-    // Hide original elements visually but keep accessible
-    statusElement.classList.add('visually-hidden');
-    dataElement.classList.add('visually-hidden');
+    // Hide original elements using opacity:0 to preserve layout flow
+    statusElement.classList.add('invisible-layout');
+    dataElement.classList.add('invisible-layout');
 
     // Ensure visibility/display properties don't conflict
     statusElement.style.visibility = '';

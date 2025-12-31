@@ -125,8 +125,32 @@ export class WebGLRenderer {
         const displayWidth = Math.floor(this.canvas.clientWidth * dpr);
         const displayHeight = Math.floor(this.canvas.clientHeight * dpr);
 
-        // Check if the canvas is not the same size.
-        if (this.canvas.width !== displayWidth || this.canvas.height !== displayHeight) {
+        // Always check layout on resize because CSS flexbox might have moved things
+        const statusEl = document.getElementById('status');
+        const dataEl = document.getElementById('data');
+
+        let layout = null;
+        if (statusEl && dataEl) {
+            const statusRect = statusEl.getBoundingClientRect();
+            const dataRect = dataEl.getBoundingClientRect();
+            const statusStyle = window.getComputedStyle(statusEl);
+            const dataStyle = window.getComputedStyle(dataEl);
+
+            layout = {
+                status: {
+                    rect: statusRect,
+                    fontSize: statusStyle.fontSize
+                },
+                data: {
+                    rect: dataRect,
+                    fontSize: dataStyle.fontSize
+                }
+            };
+        }
+
+        // Check if the canvas is not the same size OR layout needs update
+        // We force update if layout is found because rects change on resize even if canvas dims don't (e.g. slight flex shifts)
+        if (this.canvas.width !== displayWidth || this.canvas.height !== displayHeight || layout) {
             // Make the canvas the same size
             this.canvas.width = displayWidth;
             this.canvas.height = displayHeight;
@@ -134,15 +158,26 @@ export class WebGLRenderer {
             // Adjust WebGL viewport to match canvas buffer size
             this.gl.viewport(0, 0, this.canvas.width, this.canvas.height);
 
-            // Re-render text texture at new resolution
-            // TextTexture will now be initialized with larger dimensions on retina screens
-            this.textTexture.resize(displayWidth, displayHeight);
+            // Re-render text texture at new resolution / layout
+            this.textTexture.layout = layout;
+            if (this.textTexture.width !== displayWidth || this.textTexture.height !== displayHeight) {
+                this.textTexture.resize(displayWidth, displayHeight);
+            } else {
+                // Just redraw with new layout
+                this.textTexture.draw();
+            }
             this.textureNeedsUpdate = true;
         }
     }
 
     setText(status, temp) {
-        this.textTexture.update(status, temp);
+        // We need to re-measure layout when text changes because text length changes flow height/width!
+        // But doing it here might be async or cause thrashing. 
+        // Ideally, main.js updates DOM text, browser reflows, THEN we measure.
+        // We can force a measurement here.
+        this.resize();
+
+        this.textTexture.update(status, temp, this.textTexture.layout);
         this.textureNeedsUpdate = true;
     }
 

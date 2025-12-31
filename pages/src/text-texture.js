@@ -17,9 +17,10 @@ export class TextTexture {
         this.draw();
     }
 
-    update(status, temp) {
+    update(status, temp, layout) {
         this.status = status;
         this.temp = temp;
+        this.layout = layout;
         this.draw();
     }
 
@@ -27,23 +28,37 @@ export class TextTexture {
         if (!this.width || !this.height) return;
 
         const { ctx, width, height } = this;
+        // Use devicePixelRatio for drawing calculations if needed, though canvas is already scaled
+        const dpr = window.devicePixelRatio || 1;
 
         // Clear background
         ctx.clearRect(0, 0, width, height);
 
-        // We want to match the CSS variables:
-        // --text-color: #283f43
-        // --subtext-color: rgba(0, 0, 0, 0.5)
+        // Default fonts if layout not provided (fallback)
+        let statusSize = Math.max(24, Math.floor(width * 0.12) + 16);
+        let dataSize = Math.max(16, Math.floor(width * 0.06) + 8);
+        let statusY = height * 0.35;
+        let dataY = statusY + statusSize * 1.5;
 
-        // Get fonts/styles matching the original DOM
-        // Since width/height are now potentially scaled by DPR, we should ensure the math scales up too.
-        // The original logic relied on CSS-like width which is fine if width is CSS width, but here width is buffer width.
-        // So this math actually works automatically because 'width' is larger on retina!
+        // Use precise layout from DOM if available
+        if (this.layout) {
+            // Convert client coordinates to canvas coordinates (which are scaled by DPR)
+            // Canvas 0,0 is at top-left of viewport because it is fixed/absolute full size
+            statusSize = parseFloat(this.layout.status.fontSize) * dpr;
+            dataSize = parseFloat(this.layout.data.fontSize) * dpr;
 
-        // However, we need to ensure we don't scale relatively too small or large. 
-        // 0.12 * width is relative to BUFFER width.
-        const statusSize = Math.max(24, Math.floor(width * 0.12) + 16);
-        const dataSize = Math.max(16, Math.floor(width * 0.06) + 8);
+            // Client rect top/left are relative to viewport. Canvas is also viewport relative.
+            // We need center points.
+            const sRect = this.layout.status.rect;
+            const dRect = this.layout.data.rect;
+
+            // Center Y of text
+            statusY = (sRect.top + sRect.height / 2) * dpr;
+
+            // For temperature, it's the center of the #data-container? 
+            // Actually #data is inside #data-container. We measured #data.
+            dataY = (dRect.top + dRect.height / 2) * dpr;
+        }
 
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -54,19 +69,13 @@ export class TextTexture {
         const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-color').trim();
         ctx.fillStyle = textColor || '#283f43';
 
-        // Position similar to original DOM layout
-        // Original layout had padding-bottom: 30vh on #data-container
-        // Effectively shifting the visual center up by ~15% of the viewport height
-        const centerY = height * 0.35; // 50% - 15% = 35%
-        const statusY = centerY - (statusSize * 0.6);
         ctx.fillText(this.status, width / 2, statusY);
 
         // Draw Temperature ("51°F")
         if (this.temp) {
             ctx.font = `300 ${dataSize}px "Plus Jakarta Sans", sans-serif`;
             ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-            const tempY = centerY + (dataSize * 0.8);
-            ctx.fillText(this.temp, width / 2, tempY);
+            ctx.fillText(this.temp, width / 2, dataY);
         }
     }
 

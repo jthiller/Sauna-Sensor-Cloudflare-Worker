@@ -114,3 +114,13 @@ body {
     white-space: nowrap;
     border-width: 0;
 }
+
+/* 
+   Keep element in document flow but invisible.
+   Used to preserve layout geometry for WebGL positioning.
+*/
+.invisible-layout {
+    opacity: 0;
+    pointer-events: none;
+    /* Let clicks pass through to body handler or canvas */
+}
