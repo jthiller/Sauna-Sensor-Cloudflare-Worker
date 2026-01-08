@@ -26,7 +26,7 @@ function calculateTangents(points) {
  */
 export function drawSparkline(data) {
     const svg = document.getElementById('sparkline');
-    if (!svg || data.length === 0) return;
+    if (!svg || data.length < 2) return; // Need at least 2 points for a line
 
     const width = CHART_WIDTH;
     const height = CHART_HEIGHT;
