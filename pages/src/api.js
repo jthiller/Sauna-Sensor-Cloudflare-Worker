@@ -32,39 +32,20 @@ export function hasEnoughHoursOfData(data, hours) {
     return lastTimestamp - firstTimestamp >= hoursInMillis;
 }
 
-export function extractRecentData(data, hours = 3, usePeak = false) {
+export function extractRecentData(data, hours = 3, isHistorical = false) {
     if (!data || data.length === 0) return [];
 
     // Sort by timestamp
     const sortedData = [...data].sort((a, b) => a.timestamp - b.timestamp);
 
-    let referenceTime;
-
-    if (usePeak) {
-        // Find the index of the max temp to center the view around the interesting part
-        // We look for max TempC_SHT (which is in Celsius)
-        let maxTemp = -Infinity;
-        let maxIndex = sortedData.length - 1;
-
-        for (let i = 0; i < sortedData.length; i++) {
-            const val = sortedData[i].data?.TempC_SHT;
-            // Check for valid number
-            if (val !== undefined && typeof val === 'number' && val > maxTemp) {
-                maxTemp = val;
-                maxIndex = i;
-            }
-        }
-
-        referenceTime = sortedData[maxIndex].timestamp;
-    } else {
-        // Default: end of dataset
-        referenceTime = sortedData[sortedData.length - 1].timestamp;
+    // For historical dates, show all data for the day
+    if (isHistorical) {
+        return sortedData;
     }
 
+    // For live viewing, use a time window ending at the most recent data point
+    const referenceTime = sortedData[sortedData.length - 1].timestamp;
     const hoursInMillis = hours * 60 * 60 * 1000;
-
-    // We want the window to END at the reference time (peak or latest)
-    // so we see the climb UP to the peak.
     const cutoff = referenceTime - hoursInMillis;
 
     return sortedData.filter(d => d.timestamp > cutoff && d.timestamp <= referenceTime);

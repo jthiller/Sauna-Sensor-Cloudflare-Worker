@@ -43,12 +43,12 @@ function isCoolingDown(tempData) {
  * Process raw sensor data and update the display
  * @param {Array} data - Array of sensor readings
  * @param {number} hours - Hours of data to display
- * @param {boolean} usePeak - Whether to focus on peak temperature
+ * @param {boolean} isHistorical - Whether viewing historical data (shows full day)
  */
-function processData(data, hours, usePeak = false) {
+function processData(data, hours, isHistorical = false) {
     if (data.length === 0) return;
 
-    const recentData = extractRecentData(data, hours, usePeak);
+    const recentData = extractRecentData(data, hours, isHistorical);
 
     temperatureData = recentData
         .filter((entry) => entry.data?.TempC_SHT !== undefined)
@@ -127,8 +127,8 @@ async function fetchData() {
             }
         }
 
-        const usePeak = !!dateParam;
-        processData(data, 3, usePeak);
+        const isHistorical = !!dateParam;
+        processData(data, 3, isHistorical);
 
         loadingIndicator.style.display = 'none';
         dataElement.classList.remove('error');
