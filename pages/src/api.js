@@ -32,6 +32,14 @@ export function hasEnoughHoursOfData(data, hours) {
     return lastTimestamp - firstTimestamp >= hoursInMillis;
 }
 
+/**
+ * Extract a subset of sensor data for display
+ * @param {Array} data - Array of sensor readings with timestamp and data properties
+ * @param {number} [hours=3] - Hours of data to include (only used for live viewing)
+ * @param {boolean} [isHistorical=false] - If true, returns all data for the day;
+ *   if false, returns only the most recent `hours` of data
+ * @returns {Array} Sorted array of sensor readings within the specified time window
+ */
 export function extractRecentData(data, hours = 3, isHistorical = false) {
     if (!data || data.length === 0) return [];
 
